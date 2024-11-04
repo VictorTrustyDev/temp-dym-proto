@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "dymension/streamer/distr_info.proto";
+import "dymensionxyz/dymension/streamer/distr_info.proto";
 
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
@@ -19,7 +19,7 @@ message Stream {
   uint64 id = 1;
 
   // distribute_to is the distr_info.
-  DistrInfo distribute_to = 2;
+  DistrInfo distribute_to = 2 [ (gogoproto.nullable) = false ];
   
   // coins is the total amount of coins that have been in the stream
   // Can distribute multiple coin denoms
@@ -47,6 +47,15 @@ message Stream {
   uint64 filled_epochs = 7;
   // distributed_coins are coins that have been distributed already
   repeated cosmos.base.v1beta1.Coin distributed_coins = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+
+  // Sponsored indicates if the stream is based on the sponsorship distribution.
+  bool sponsored = 9;
+
+  // EpochCoins are coins that need to be distributed in this epoch.
+  repeated cosmos.base.v1beta1.Coin epoch_coins = 10 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];

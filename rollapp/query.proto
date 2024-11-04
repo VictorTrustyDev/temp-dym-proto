@@ -1,14 +1,15 @@
 syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "dymension/rollapp/params.proto";
-import "dymension/rollapp/rollapp.proto";
-import "dymension/rollapp/state_info.proto";
-
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+import "dymensionxyz/dymension/rollapp/params.proto";
+import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "dymensionxyz/dymension/rollapp/state_info.proto";
+import "dymensionxyz/dymension/rollapp/app.proto";
 
 // Query defines the gRPC querier service.
 service Query {
@@ -53,6 +54,11 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
   }
+
+  // Queries a list of registered denoms for the rollapp.
+  rpc RegisteredDenoms(QueryRegisteredDenomsRequest) returns (QueryRegisteredDenomsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/registered_denoms";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -64,9 +70,17 @@ message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryGetRollappRequest { string rollappId = 1; }
+message QueryGetRollappRequest {
+  string rollappId = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
+}
 
-message QueryGetRollappByEIP155Request { uint64 eip155 = 1; }
+message QueryGetRollappByEIP155Request {
+  uint64 eip155 = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
+}
 
 message QueryGetLatestHeightRequest {
   string rollappId = 1;
@@ -86,21 +100,21 @@ message QueryGetLatestStateIndexResponse {
 
 message QueryGetRollappResponse {
   Rollapp rollapp = 1 [ (gogoproto.nullable) = false ];
-  // Defines the index of the last rollapp UpdateState.
-  StateInfoIndex latestStateIndex = 2;
-  // Defines the index of the last rollapp UpdateState that was finalized.
-  StateInfoIndex latestFinalizedStateIndex = 3;
-
-  uint64 latestHeight = 4;
-  uint64 latestFinalizedHeight = 5;
+  reserved 2 to 5;
+  RollappSummary summary = 6 [ (gogoproto.nullable) = false ];
+  // apps is the list of (lazy-loaded) apps in the rollapp
+  repeated App apps = 7 [ (gogoproto.nullable) = true ];
 }
 
 message QueryAllRollappRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
 }
 
 message QueryAllRollappResponse {
-  repeated RollappSummary rollapp = 1 [ (gogoproto.nullable) = false ];
+  reserved 1;
+  repeated QueryGetRollappResponse rollapp = 3 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -113,4 +127,12 @@ message QueryGetStateInfoRequest {
 
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryRegisteredDenomsRequest {
+  string rollappId = 1;
+}
+
+message QueryRegisteredDenomsResponse {
+  repeated string denoms = 1;
 }
