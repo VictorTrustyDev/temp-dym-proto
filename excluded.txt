@@ -1,0 +1,3 @@
+# The following modules are excluded:
+- New modules: iro + lightclient + sponsorship + dymns
+- Migrated from Osmosis: lockup + incentives
